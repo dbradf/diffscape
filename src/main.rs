@@ -203,8 +203,8 @@ fn parse_diff(diff_text: &str) -> Vec<DiffFile> {
             // Parse hunk header: @@ -old_start,old_count +new_start,new_count @@
             if let Some(ref mut file) = current_file {
                 if let Some((old_info, new_info)) = line.split_once(' ').and_then(|(_, rest)| {
-                    rest.split_once(' ').and_then(|(old, new)| {
-                        Some((old.trim_start_matches('-'), new.trim_start_matches('+')))
+                    rest.split_once(' ').map(|(old, new)| {
+                        (old.trim_start_matches('-'), new.trim_start_matches('+'))
                     })
                 }) {
                     old_line_num = old_info
