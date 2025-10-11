@@ -583,11 +583,11 @@ fn render_side_by_side_diff(
     let old_text = Text::from(old_lines);
     let new_text = Text::from(new_lines);
 
-    let old_paragraph = Paragraph::new(old_text)
-        .block(Block::default().borders(Borders::ALL).title("Old"));
+    let old_paragraph =
+        Paragraph::new(old_text).block(Block::default().borders(Borders::ALL).title("Old"));
 
-    let new_paragraph = Paragraph::new(new_text)
-        .block(Block::default().borders(Borders::ALL).title("New"));
+    let new_paragraph =
+        Paragraph::new(new_text).block(Block::default().borders(Borders::ALL).title("New"));
 
     f.render_widget(old_paragraph, chunks[0]);
     f.render_widget(new_paragraph, chunks[1]);
@@ -694,6 +694,12 @@ fn main() -> Result<()> {
 
     let mut app = App::new();
     app.load_diff(&args.diff_args)?;
+
+    // Enable side-by-side view by default if terminal is wide enough
+    let width = terminal.size()?.width;
+    if width >= 100 {
+        app.show_side_by_side = true;
+    }
 
     let res = run_app(&mut terminal, app);
 
