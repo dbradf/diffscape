@@ -25,7 +25,7 @@ index 1234567..abcdefg 100644
         assert_eq!(files[0].status, 'M');
 
         // Check that we have the right number of lines
-        assert!(files[0].lines.len() > 0);
+        assert!(!files[0].lines.is_empty());
 
         // Check for different line types
         let has_added = files[0]

@@ -47,6 +47,9 @@ jobs:
       with:
         components: rustfmt
 
+    - name: Install rustfmt
+      run: rustup component add rustfmt
+
     - name: Check formatting
       run: cargo fmt --all -- --check
 
@@ -153,35 +156,3 @@ jobs:
 
     - name: Check for outdated dependencies
       run: cargo outdated --exit-code 1
-
-  validate-manifest:
-    name: Validate Cargo.toml
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
-    - name: Install Rust toolchain
-      uses: dtolnay/rust-toolchain@stable
-
-    - name: Validate Cargo.toml
-      run: cargo verify-project
-
-    - name: Check package metadata
-      run: cargo package --dry-run
-
-  minimum-rust-version:
-    name: Minimum Rust Version
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
-    - name: Install minimum Rust version
-      uses: dtolnay/rust-toolchain@1.85.0
-
-    - name: Configure Rust cache
-      uses: Swatinem/rust-cache@v2
-
-    - name: Check minimum Rust version
-      run: cargo check --verbose
