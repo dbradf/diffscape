@@ -493,6 +493,7 @@ fn render_side_by_side_diff(
         .split(area);
 
     let visible_lines = (area.height - 2) as usize;
+    let panel_width = (chunks[0].width.saturating_sub(2)) as usize; // Width minus borders
     let syntax = app.get_syntax_for_file(&file.name);
     let theme = &app.theme_set.themes["base16-ocean.dark"];
 
@@ -534,10 +535,21 @@ fn render_side_by_side_diff(
                     old_spans.push(Span::styled(span.content, new_style));
                 }
                 old_lines.push(Line::from(old_spans));
-                new_lines.push(Line::from(" "));
+
+                // Empty line with background fill matching panel width
+                let empty_content = " ".repeat(panel_width);
+                new_lines.push(Line::from(Span::styled(
+                    empty_content,
+                    Style::default().bg(Color::Rgb(40, 40, 40)),
+                )));
             }
             LineType::Added => {
-                old_lines.push(Line::from(" "));
+                // Empty line with background fill matching panel width
+                let empty_content = " ".repeat(panel_width);
+                old_lines.push(Line::from(Span::styled(
+                    empty_content,
+                    Style::default().bg(Color::Rgb(40, 40, 40)),
+                )));
 
                 let highlighted_spans =
                     highlight_line_content(&diff_line.content, syntax, &app.syntax_set, theme);
@@ -572,12 +584,10 @@ fn render_side_by_side_diff(
     let new_text = Text::from(new_lines);
 
     let old_paragraph = Paragraph::new(old_text)
-        .block(Block::default().borders(Borders::ALL).title("Old"))
-        .wrap(Wrap { trim: false });
+        .block(Block::default().borders(Borders::ALL).title("Old"));
 
     let new_paragraph = Paragraph::new(new_text)
-        .block(Block::default().borders(Borders::ALL).title("New"))
-        .wrap(Wrap { trim: false });
+        .block(Block::default().borders(Borders::ALL).title("New"));
 
     f.render_widget(old_paragraph, chunks[0]);
     f.render_widget(new_paragraph, chunks[1]);
