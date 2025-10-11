@@ -9,6 +9,8 @@ A fast, beautiful Terminal User Interface (TUI) for viewing git diffs with synta
 
 `diffscape` provides a modern, efficient way to review git changes directly in your terminal. With support for syntax highlighting, side-by-side comparisons, and responsive layouts, it makes code review a pleasant experience.
 
+![diffscape in action](diffscape.gif)
+
 ## Features
 
 - **File List**: Shows all changed files with their status (M=Modified, A=Added, D=Deleted)
