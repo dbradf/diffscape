@@ -34,7 +34,7 @@ pub fn render_unified_diff(
             let line_num_text = match (&diff_line.old_line_num, &diff_line.new_line_num) {
                 (Some(old), Some(new)) => format!("{:4}:{:4} ", old, new),
                 (Some(old), None) => format!("{:4}:     ", old),
-                (None, Some(new)) => format!("    {:4} ", new),
+                (None, Some(new)) => format!("     {:4} ", new),
                 (None, None) => "         ".to_string(),
             };
 
