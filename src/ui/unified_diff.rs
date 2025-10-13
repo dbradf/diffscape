@@ -3,7 +3,7 @@ use ratatui::{
     layout::Rect,
     style::{Color, Modifier, Style},
     text::{Line, Span, Text},
-    widgets::{Block, Borders, Paragraph, Wrap},
+    widgets::{Block, Borders, Paragraph, Scrollbar, ScrollbarOrientation, ScrollbarState, Wrap},
 };
 
 use crate::{
@@ -98,4 +98,24 @@ pub fn render_unified_diff(
         .wrap(Wrap { trim: false });
 
     f.render_widget(paragraph, area);
+
+    // Render scrollbar
+    let total_lines = file.line_count();
+    if total_lines > visible_lines {
+        let mut scrollbar_state = ScrollbarState::new(total_lines)
+            .position(scroll_offset);
+
+        let scrollbar = Scrollbar::new(ScrollbarOrientation::VerticalRight)
+            .begin_symbol(Some("↑"))
+            .end_symbol(Some("↓"));
+
+        f.render_stateful_widget(
+            scrollbar,
+            area.inner(ratatui::layout::Margin {
+                vertical: 1,
+                horizontal: 0,
+            }),
+            &mut scrollbar_state,
+        );
+    }
 }
