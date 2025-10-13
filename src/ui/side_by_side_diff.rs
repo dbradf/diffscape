@@ -115,11 +115,14 @@ pub fn render_side_by_side_diff(
     let old_text = Text::from(old_lines);
     let new_text = Text::from(new_lines);
 
+    let old_title = format!("Old: {}", file.get_name());
+    let new_title = format!("New: {}", file.get_name());
+
     let old_paragraph =
-        Paragraph::new(old_text).block(Block::default().borders(Borders::ALL).title("Old"));
+        Paragraph::new(old_text).block(Block::default().borders(Borders::ALL).title(old_title));
 
     let new_paragraph =
-        Paragraph::new(new_text).block(Block::default().borders(Borders::ALL).title("New"));
+        Paragraph::new(new_text).block(Block::default().borders(Borders::ALL).title(new_title));
 
     f.render_widget(old_paragraph, chunks[0]);
     f.render_widget(new_paragraph, chunks[1]);
