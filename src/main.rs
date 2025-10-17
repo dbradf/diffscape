@@ -25,6 +25,10 @@ struct Args {
     #[arg(long)]
     staged: bool,
 
+    /// Diff the given commit.
+    #[arg(long)]
+    commit: Option<String>,
+
     /// Git diff arguments (e.g., "HEAD~1", "main..feature")
     #[arg(default_value = "")]
     diff_args: String,
@@ -42,12 +46,14 @@ fn main() -> Result<()> {
 
     // Enable side-by-side view by default if terminal is wide enough
     let mut app = App::new(width >= 100);
-    let diff_args = if args.staged {
-        "--cached"
+    let diff_args = if let Some(commit) = args.commit {
+        format!("{}^..{}", &commit, &commit)
+    } else if args.staged {
+        "--cached".to_string()
     } else {
-        &args.diff_args
+        args.diff_args
     };
-    app.load_diff(diff_args)?;
+    app.load_diff(&diff_args)?;
 
     let res = run_app(&mut terminal, app);
 
