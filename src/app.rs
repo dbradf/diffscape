@@ -1,4 +1,4 @@
-use std::process::Command;
+use std::{cmp::min, process::Command};
 
 use anyhow::Result;
 use ratatui::widgets::ListState;
@@ -9,6 +9,18 @@ use syntect::{
 
 use crate::diff_file::{DiffFile, DiffLine};
 
+pub enum Action {
+    Quit,
+    NextFile,
+    PrevFile,
+    ScrollDown { amount: usize },
+    ScrollUp { amount: usize },
+    ToggleSplit { width: u16 },
+    Help,
+    Top,
+    Bottom,
+}
+
 pub struct App {
     pub files: Vec<DiffFile>,
     pub selected_file: usize,
@@ -18,6 +30,7 @@ pub struct App {
     pub show_shortcuts: bool,
     pub syntax_set: SyntaxSet,
     pub theme_set: ThemeSet,
+    pub running: bool,
 }
 
 impl App {
@@ -34,6 +47,7 @@ impl App {
             show_shortcuts: true,
             syntax_set: SyntaxSet::load_defaults_newlines(),
             theme_set: ThemeSet::load_defaults(),
+            running: true,
         }
     }
 
@@ -59,7 +73,25 @@ impl App {
         Ok(())
     }
 
-    pub fn next_file(&mut self) {
+    pub fn perform_action(&mut self, action: Action) {
+        match action {
+            Action::Quit => self.quit(),
+            Action::NextFile => self.next_file(),
+            Action::PrevFile => self.previous_file(),
+            Action::ScrollDown { amount } => self.scroll_down(amount),
+            Action::ScrollUp { amount } => self.scroll_up(amount),
+            Action::ToggleSplit { width } => self.toggle_view_mode(width),
+            Action::Help => self.toggle_shortcuts(),
+            Action::Top => self.scroll_to_top(),
+            Action::Bottom => self.scroll_to_bottom(),
+        }
+    }
+
+    fn quit(&mut self) {
+        self.running = false;
+    }
+
+    fn next_file(&mut self) {
         if !self.files.is_empty() {
             self.selected_file = (self.selected_file + 1) % self.files.len();
             self.file_list_state.select(Some(self.selected_file));
@@ -67,7 +99,7 @@ impl App {
         }
     }
 
-    pub fn previous_file(&mut self) {
+    fn previous_file(&mut self) {
         if !self.files.is_empty() {
             self.selected_file = if self.selected_file == 0 {
                 self.files.len() - 1
@@ -79,25 +111,33 @@ impl App {
         }
     }
 
-    pub fn scroll_down(&mut self) {
-        if let Some(file) = self.files.get(self.selected_file)
-            && self.scroll_offset + 1 < file.line_count()
-        {
-            self.scroll_offset += 1;
+    fn scroll_down(&mut self, scroll_amount: usize) {
+        if let Some(file) = self.files.get(self.selected_file) {
+            let new_offset = min(self.scroll_offset + scroll_amount, file.line_count());
+            self.scroll_offset = new_offset;
         }
     }
 
-    pub fn scroll_up(&mut self) {
-        if self.scroll_offset > 0 {
-            self.scroll_offset -= 1;
+    fn scroll_up(&mut self, scroll_amount: usize) {
+        let new_offset = self.scroll_offset.saturating_sub(scroll_amount);
+        self.scroll_offset = new_offset;
+    }
+
+    fn scroll_to_top(&mut self) {
+        self.scroll_offset = 0;
+    }
+
+    fn scroll_to_bottom(&mut self) {
+        if let Some(file) = self.files.get(self.selected_file) {
+            self.scroll_offset = file.line_count().saturating_sub(1);
         }
     }
 
-    pub fn toggle_view_mode(&mut self, width: u16) {
+    fn toggle_view_mode(&mut self, width: u16) {
         self.show_side_by_side = width >= 120 && !self.show_side_by_side;
     }
 
-    pub fn toggle_shortcuts(&mut self) {
+    fn toggle_shortcuts(&mut self) {
         self.show_shortcuts = !self.show_shortcuts;
     }
 

@@ -11,7 +11,7 @@ use ratatui::{
 };
 use std::io;
 
-use crate::app::App;
+use crate::app::{Action, App};
 use crate::ui::render_ui::ui;
 
 mod app;
@@ -24,6 +24,10 @@ struct Args {
     /// Diff the staged files.
     #[arg(long)]
     staged: bool,
+
+    /// Diff the given commit.
+    #[arg(long)]
+    commit: Option<String>,
 
     /// Git diff arguments (e.g., "HEAD~1", "main..feature")
     #[arg(default_value = "")]
@@ -42,12 +46,14 @@ fn main() -> Result<()> {
 
     // Enable side-by-side view by default if terminal is wide enough
     let mut app = App::new(width >= 100);
-    let diff_args = if args.staged {
-        "--cached"
+    let diff_args = if let Some(commit) = args.commit {
+        format!("{}^..{}", &commit, &commit)
+    } else if args.staged {
+        "--cached".to_string()
     } else {
-        &args.diff_args
+        args.diff_args
     };
-    app.load_diff(diff_args)?;
+    app.load_diff(&diff_args)?;
 
     let res = run_app(&mut terminal, app);
 
@@ -67,37 +73,31 @@ fn main() -> Result<()> {
 }
 
 fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> Result<()> {
-    loop {
+    while app.running {
         terminal.draw(|f| ui(f, &app))?;
 
         if let Event::Key(key) = event::read()? {
             match key.code {
-                KeyCode::Char('q') => return Ok(()),
-                KeyCode::Char('j') | KeyCode::Down => app.next_file(),
-                KeyCode::Char('k') | KeyCode::Up => app.previous_file(),
+                KeyCode::Char('q') => app.perform_action(Action::Quit),
+                KeyCode::Char('j') | KeyCode::Down => app.perform_action(Action::NextFile),
+                KeyCode::Char('k') | KeyCode::Up => app.perform_action(Action::PrevFile),
                 KeyCode::Char('d') | KeyCode::PageDown => {
-                    for _ in 0..10 {
-                        app.scroll_down();
-                    }
+                    app.perform_action(Action::ScrollDown { amount: 10 })
                 }
                 KeyCode::Char('u') | KeyCode::PageUp => {
-                    for _ in 0..10 {
-                        app.scroll_up();
-                    }
+                    app.perform_action(Action::ScrollUp { amount: 10 });
                 }
                 KeyCode::Char('s') => {
                     let width = terminal.size()?.width;
-                    app.toggle_view_mode(width);
+                    app.perform_action(Action::ToggleSplit { width });
                 }
-                KeyCode::Char('h') => app.toggle_shortcuts(),
-                KeyCode::Char('g') => app.scroll_offset = 0,
-                KeyCode::Char('G') => {
-                    if let Some(file) = app.files.get(app.selected_file) {
-                        app.scroll_offset = file.line_count().saturating_sub(1);
-                    }
-                }
+                KeyCode::Char('h') => app.perform_action(Action::Help),
+                KeyCode::Char('g') => app.perform_action(Action::Top),
+                KeyCode::Char('G') => app.perform_action(Action::Bottom),
                 _ => {}
             }
         }
     }
+
+    Ok(())
 }

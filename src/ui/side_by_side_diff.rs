@@ -130,8 +130,7 @@ pub fn render_side_by_side_diff(
     // Render scrollbars for both panels
     let total_lines = file.line_count();
     if total_lines > visible_lines {
-        let mut scrollbar_state = ScrollbarState::new(total_lines)
-            .position(scroll_offset);
+        let mut scrollbar_state = ScrollbarState::new(total_lines).position(scroll_offset);
 
         let scrollbar = Scrollbar::new(ScrollbarOrientation::VerticalRight)
             .begin_symbol(Some("↑"))
