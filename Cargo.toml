@@ -18,6 +18,7 @@ crossterm = "0.29.0"
 anyhow = "1.0"
 clap = { version = "4.0", features = ["derive"] }
 syntect = "5.1"
+similar = "2.6"
 
 [profile.release]
 opt-level = 3
