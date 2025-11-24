@@ -1,3 +1,4 @@
+pub mod diff_utils;
 mod footer;
 mod highlight_line;
 pub mod render_ui;
