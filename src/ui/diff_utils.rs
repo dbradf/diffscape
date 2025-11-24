@@ -1,13 +1,13 @@
-use ratatui::{
-    style::Color,
-    text::Span,
-};
+use ratatui::{style::Color, text::Span};
 use similar::{Algorithm, ChangeTag, TextDiff};
 use std::ops::Range;
 
 /// Computes the ranges of changes within a line.
 /// Returns a tuple of (ranges in old text, ranges in new text) that differ.
-pub fn compute_intra_line_diff(old_text: &str, new_text: &str) -> (Vec<Range<usize>>, Vec<Range<usize>>) {
+pub fn compute_intra_line_diff(
+    old_text: &str,
+    new_text: &str,
+) -> (Vec<Range<usize>>, Vec<Range<usize>>) {
     let diff = TextDiff::configure()
         .algorithm(Algorithm::Myers)
         .diff_chars(old_text, new_text);
@@ -57,7 +57,7 @@ pub fn compute_intra_line_diff(old_text: &str, new_text: &str) -> (Vec<Range<usi
 }
 
 /// Applies diff highlighting to existing syntax highlighted spans.
-/// 
+///
 /// * `spans` - The original syntax highlighted spans
 /// * `diff_ranges` - The ranges that should be highlighted with the diff color
 /// * `base_bg` - The background color for the whole line (e.g. dark red for removed)
@@ -108,11 +108,9 @@ pub fn apply_diff_highlight<'a>(
 
             // Add non-highlighted part before the overlap
             if overlap_start > last_processed {
-                let sub_content = &content[(last_processed - current_idx)..(overlap_start - current_idx)];
-                new_spans.push(Span::styled(
-                    sub_content.to_string(),
-                    style.bg(base_bg),
-                ));
+                let sub_content =
+                    &content[(last_processed - current_idx)..(overlap_start - current_idx)];
+                new_spans.push(Span::styled(sub_content.to_string(), style.bg(base_bg)));
             }
 
             // Add highlighted part
@@ -128,10 +126,7 @@ pub fn apply_diff_highlight<'a>(
         // Add remaining part of the span
         if last_processed < span_end {
             let sub_content = &content[(last_processed - current_idx)..];
-            new_spans.push(Span::styled(
-                sub_content.to_string(),
-                style.bg(base_bg),
-            ));
+            new_spans.push(Span::styled(sub_content.to_string(), style.bg(base_bg)));
         }
 
         current_idx += len;
@@ -149,7 +144,7 @@ mod tests {
         let old = "foo bar baz";
         let new = "foo qux baz";
         let (old_ranges, new_ranges) = compute_intra_line_diff(old, new);
-        
+
         // "bar" (4..7) -> "qux" (4..7)
         assert_eq!(old_ranges, vec![4..7]);
         assert_eq!(new_ranges, vec![4..7]);
@@ -160,7 +155,7 @@ mod tests {
         let old = "abc 123 xyz";
         let new = "abc 456 xyz";
         let (old_ranges, new_ranges) = compute_intra_line_diff(old, new);
-        
+
         assert_eq!(old_ranges, vec![4..7]);
         assert_eq!(new_ranges, vec![4..7]);
     }

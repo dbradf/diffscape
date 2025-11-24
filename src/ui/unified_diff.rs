@@ -3,7 +3,7 @@ use ratatui::{
     layout::Rect,
     style::{Color, Modifier, Style},
     text::{Line, Span, Text},
-    widgets::{Block, Borders, Paragraph, Scrollbar, ScrollbarOrientation, ScrollbarState, Wrap},
+    widgets::{Block, Borders, Paragraph, Scrollbar, ScrollbarOrientation, ScrollbarState},
 };
 
 use crate::{
@@ -31,39 +31,37 @@ pub fn render_unified_diff(
 
     while i < end_line {
         let diff_line = &file.lines[i];
-        
+
         // Check for intra-line diff opportunity
         // We need a Removed line followed immediately by an Added line
         if diff_line.line_type == LineType::Removed && i + 1 < file.line_count() {
             let next_line = &file.lines[i + 1];
-            if next_line.line_type == LineType::Added {
-                 if i + 1 < end_line {
-                    let (old_ranges, new_ranges) = crate::ui::diff_utils::compute_intra_line_diff(
-                        &diff_line.content,
-                        &next_line.content,
-                    );
+            if next_line.line_type == LineType::Added && i + 1 < end_line {
+                let (old_ranges, new_ranges) = crate::ui::diff_utils::compute_intra_line_diff(
+                    &diff_line.content,
+                    &next_line.content,
+                );
 
-                    // Render removed line
-                    lines.push(render_diff_line(
-                        diff_line,
-                        syntax,
-                        app.get_syntax_set(),
-                        theme,
-                        Some((&old_ranges, Color::Rgb(139, 0, 0), Color::Rgb(80, 0, 0))),
-                    ));
+                // Render removed line
+                lines.push(render_diff_line(
+                    diff_line,
+                    syntax,
+                    app.get_syntax_set(),
+                    theme,
+                    Some((&old_ranges, Color::Rgb(139, 0, 0), Color::Rgb(80, 0, 0))),
+                ));
 
-                    // Render added line
-                    lines.push(render_diff_line(
-                        next_line,
-                        syntax,
-                        app.get_syntax_set(),
-                        theme,
-                        Some((&new_ranges, Color::Rgb(0, 100, 0), Color::Rgb(0, 60, 0))),
-                    ));
+                // Render added line
+                lines.push(render_diff_line(
+                    next_line,
+                    syntax,
+                    app.get_syntax_set(),
+                    theme,
+                    Some((&new_ranges, Color::Rgb(0, 100, 0), Color::Rgb(0, 60, 0))),
+                ));
 
-                    i += 2;
-                    continue;
-                }
+                i += 2;
+                continue;
             }
         }
 
@@ -84,7 +82,7 @@ pub fn render_unified_diff(
                 .borders(Borders::ALL)
                 .title(file.get_name()),
         )
-        .wrap(Wrap { trim: false });
+        .scroll((0, app.horizontal_scroll_offset as u16));
 
     f.render_widget(paragraph, area);
 
@@ -155,9 +153,9 @@ fn render_diff_line<'a>(
     } else {
         let highlighted_spans =
             highlight_line_content(&diff_line.content, syntax, syntax_set, theme);
-        
+
         if let Some((ranges, base_bg, highlight_bg)) = intra_line_highlight {
-             let diff_spans = crate::ui::diff_utils::apply_diff_highlight(
+            let diff_spans = crate::ui::diff_utils::apply_diff_highlight(
                 highlighted_spans,
                 ranges,
                 base_bg,
@@ -165,7 +163,7 @@ fn render_diff_line<'a>(
             );
             spans.extend(diff_spans);
         } else if let Some(bg) = bg_color {
-             // Syntax highlight the content but apply background color
+            // Syntax highlight the content but apply background color
             for span in highlighted_spans {
                 let mut new_style = span.style;
                 new_style = new_style.bg(bg);

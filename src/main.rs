@@ -91,9 +91,17 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> Result<()> {
                     let width = terminal.size()?.width;
                     app.perform_action(Action::ToggleSplit { width });
                 }
-                KeyCode::Char('h') => app.perform_action(Action::Help),
+                KeyCode::Char('?') => app.perform_action(Action::Help),
                 KeyCode::Char('g') => app.perform_action(Action::Top),
                 KeyCode::Char('G') => app.perform_action(Action::Bottom),
+                KeyCode::Left | KeyCode::Char('h') => {
+                    app.perform_action(Action::ScrollLeft { amount: 1 })
+                }
+                KeyCode::Right | KeyCode::Char('l') => {
+                    app.perform_action(Action::ScrollRight { amount: 1 })
+                }
+                KeyCode::Char('H') => app.perform_action(Action::ScrollLeft { amount: 10 }),
+                KeyCode::Char('L') => app.perform_action(Action::ScrollRight { amount: 10 }),
                 _ => {}
             }
         }

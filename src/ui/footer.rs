@@ -37,6 +37,13 @@ pub fn render_footer(f: &mut Frame, area: Rect) {
         ),
         Span::raw(":Top/Bottom  "),
         Span::styled(
+            "←/→/h/l/H/L",
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD),
+        ),
+        Span::raw(":H-Scroll  "),
+        Span::styled(
             "s",
             Style::default()
                 .fg(Color::Yellow)
@@ -44,7 +51,7 @@ pub fn render_footer(f: &mut Frame, area: Rect) {
         ),
         Span::raw(":Toggle View  "),
         Span::styled(
-            "h",
+            "?",
             Style::default()
                 .fg(Color::Yellow)
                 .add_modifier(Modifier::BOLD),

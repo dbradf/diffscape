@@ -19,6 +19,8 @@ pub enum Action {
     Help,
     Top,
     Bottom,
+    ScrollLeft { amount: usize },
+    ScrollRight { amount: usize },
 }
 
 pub struct App {
@@ -26,6 +28,7 @@ pub struct App {
     pub selected_file: usize,
     pub file_list_state: ListState,
     pub scroll_offset: usize,
+    pub horizontal_scroll_offset: usize,
     pub show_side_by_side: bool,
     pub show_shortcuts: bool,
     pub syntax_set: SyntaxSet,
@@ -43,6 +46,7 @@ impl App {
             selected_file: 0,
             file_list_state: state,
             scroll_offset: 0,
+            horizontal_scroll_offset: 0,
             show_side_by_side,
             show_shortcuts: true,
             syntax_set: SyntaxSet::load_defaults_newlines(),
@@ -84,6 +88,8 @@ impl App {
             Action::Help => self.toggle_shortcuts(),
             Action::Top => self.scroll_to_top(),
             Action::Bottom => self.scroll_to_bottom(),
+            Action::ScrollLeft { amount } => self.scroll_left(amount),
+            Action::ScrollRight { amount } => self.scroll_right(amount),
         }
     }
 
@@ -96,6 +102,7 @@ impl App {
             self.selected_file = (self.selected_file + 1) % self.files.len();
             self.file_list_state.select(Some(self.selected_file));
             self.scroll_offset = 0;
+            self.horizontal_scroll_offset = 0;
         }
     }
 
@@ -108,6 +115,7 @@ impl App {
             };
             self.file_list_state.select(Some(self.selected_file));
             self.scroll_offset = 0;
+            self.horizontal_scroll_offset = 0;
         }
     }
 
@@ -131,6 +139,14 @@ impl App {
         if let Some(file) = self.files.get(self.selected_file) {
             self.scroll_offset = file.line_count().saturating_sub(1);
         }
+    }
+
+    fn scroll_left(&mut self, amount: usize) {
+        self.horizontal_scroll_offset = self.horizontal_scroll_offset.saturating_sub(amount);
+    }
+
+    fn scroll_right(&mut self, amount: usize) {
+        self.horizontal_scroll_offset += amount;
     }
 
     fn toggle_view_mode(&mut self, width: u16) {
